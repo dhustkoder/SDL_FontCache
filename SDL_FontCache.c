@@ -9,7 +9,6 @@ See SDL_FontCache.h for license info.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 // Visual C does not support static inline
@@ -1738,30 +1737,18 @@ static void set_color_for_all_caches(FC_Font* font, SDL_Color color)
     }
 }
 
-static FC_Rect FC_Draw_fcbuff(FC_Font* font, FC_Target* dest, float x, float y, const char* fc_buffer)
-{
-    set_color_for_all_caches(font, font->default_color);
-    return FC_RenderLeft(font, dest, x, y, FC_MakeScale(1,1), fc_buffer);
-}
-
-FC_Rect FC_Draw_v(FC_Font* font, FC_Target* dest, float x, float y, const char* formatted_text, va_list lst)
-{
-	assert(font != NULL && formatted_text != NULL);
-	vsnprintf(fc_buffer, fc_buffer_size, formatted_text, lst);
-	return FC_Draw_fcbuff(font, dest, x, y, fc_buffer);
-}
-
 FC_Rect FC_Draw(FC_Font* font, FC_Target* dest, float x, float y, const char* formatted_text, ...)
 {
     if(formatted_text == NULL || font == NULL)
         return FC_MakeRect(x, y, 0, 0);
 
-	va_list lst;
-    va_start(lst, formatted_text);
-	FC_Rect rect = FC_Draw_v(font, dest, x, y, fc_buffer, lst);
-	va_end(lst);
-	return rect;
+    FC_EXTRACT_VARARGS(fc_buffer, formatted_text);
+
+    set_color_for_all_caches(font, font->default_color);
+
+    return FC_RenderLeft(font, dest, x, y, FC_MakeScale(1,1), fc_buffer);
 }
+
 
 
 typedef struct FC_StringList
